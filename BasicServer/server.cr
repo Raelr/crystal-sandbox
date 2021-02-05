@@ -4,17 +4,24 @@ require "uri"
 class BasicServer 
   def initialize
     @routes = {} of String => ( -> String)
+    @current_path = ""
   end
 
   def run 
     server : HTTP::Server = HTTP::Server.new do |context|
+      address = "http://localhost:8080#{context.request.path.to_s}?#{context.request.query.to_s}"
+      uri = URI.parse address
+      puts uri.path
+      puts uri.query
+      puts address
       if @routes.has_key?(context.request.path.to_s)
         context.response.respond_with_status(200, @routes[context.request.path.to_s].call)
       else
-        context.response.respond_with_status(404, "404, Page not found")
+        context.response.respond_with_status(404, "Page not found")
       end
+      @current_path = context.request.path.to_s
     end
-    address = "http://#{server.bind_tcp 8080, false}/app"
+    server.bind_tcp 8080
     server.listen
   end
 
