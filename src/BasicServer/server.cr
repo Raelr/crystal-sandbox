@@ -17,7 +17,7 @@ class BasicServer
       if @routes.has_key?(context.request.path.to_s)
         context.response.print(@routes[context.request.path.to_s].call)
       else
-        context.response.print("Page not found")
+        context.response.print({"status" => 404, "message" => "Page not found"}.to_json)
       end
       @current_path = context.request.path.to_s
     end
@@ -47,9 +47,7 @@ end
 server.get "/app/users" do 
   args = server.current_uri.query_params
   user = User.new(args["id"].to_u32, args["name"])
-  json = {"id" => args["id"], "name" => args["name"]}.to_json
-  json_with_status = {"status" => 200, "message" => json}.to_json
-  json_with_status.delete('\\')
+  json_with_status = {"status" => 200, "message" => user.serialize}.to_json.delete('\\')
 end
 
 server.run
