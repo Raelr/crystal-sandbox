@@ -1,23 +1,23 @@
 require "http/server"
+require "../User/user"
 require "uri"
+require "json"
 
 class BasicServer 
   def initialize
     @routes = {} of String => ( -> String)
     @current_path = ""
+    @current_uri = URI.parse "http://localhost:8080"
   end
 
   def run 
     server : HTTP::Server = HTTP::Server.new do |context|
       address = "http://localhost:8080#{context.request.path.to_s}?#{context.request.query.to_s}"
-      uri = URI.parse address
-      puts uri.path
-      puts uri.query
-      puts address
+      @current_uri = URI.parse address
       if @routes.has_key?(context.request.path.to_s)
-        context.response.respond_with_status(200, @routes[context.request.path.to_s].call)
+        context.response.print(@routes[context.request.path.to_s].call)
       else
-        context.response.respond_with_status(404, "Page not found")
+        context.response.print("Page not found")
       end
       @current_path = context.request.path.to_s
     end
@@ -27,6 +27,10 @@ class BasicServer
 
   def get(route, &block : (-> String)) 
     @routes[route] = block
+  end
+
+  def current_uri
+    @current_uri
   end
 end
 
@@ -40,8 +44,12 @@ server.get "/app" do
   "The app page!"
 end
 
+server.get "/app/users" do 
+  args = server.current_uri.query_params
+  user = User.new(args["id"].to_u32, args["name"])
+  json = {"id" => args["id"], "name" => args["name"]}.to_json
+  json_with_status = {"status" => 200, "message" => json}.to_json
+  json_with_status.delete('\\')
+end
+
 server.run
-
-
-
-
