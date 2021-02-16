@@ -2,13 +2,17 @@ require "json"
 
 class User
 
+    include JSON::Serializable
+
     def initialize
         @id = 0
         @name = ""
     end
 
     def initialize(id : UInt32, name : String)
+        @[JSON::Field(key: "id")]
         @id = id
+        @[JSON::Field(key: "name")]
         @name = name
     end
 

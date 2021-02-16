@@ -12,12 +12,13 @@ class BasicServer
 
   def run 
     server : HTTP::Server = HTTP::Server.new do |context|
+      @current_uri = URI.parse "#{@current_uri.scheme}://#{@current_uri.host}:#{@port}#{context.request.path.to_s}?#{context.request.query.to_s}"
       if @routes.has_key?(context.request.path.to_s)
+        context.response.content_type = "application/json"
         context.response.print(@routes[context.request.path.to_s].call)
       else
         context.response.print({"status" => 404, "message" => "Page not found"}.to_json)
       end
-      @current_uri = URI.parse "#{@current_uri.scheme}://#{@current_uri.host}:#{@port}#{context.request.path.to_s}?#{context.request.query.to_s}"
     end
     server.bind_tcp 8080
     server.listen
@@ -35,17 +36,17 @@ end
 server = BasicServer.new
 
 server.get "/" do 
-  "Homepage!"
+  {"status" => 200, "message" => "Homepage"}.to_json
 end
 
 server.get "/app" do 
-  "The app page!"
+  {"status" => 200, "message" => "The App Page!"}.to_json
 end
 
 server.get "/app/users" do 
   args = server.current_uri.query_params
   user = User.new(args["id"].to_u32, args["name"])
-  {"status" => 200, "message" => user.serialize}.to_json.delete('\\')
+  {"status" => 200, "message" => user.to_json}.to_json
 end
 
 server.run
