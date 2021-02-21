@@ -26,12 +26,25 @@ class BasicServer
     server.listen
   end
 
-  def get(route, &block : (-> String))
+  def get(route : String, &block : (-> String))
     @routes[route] = block
   end
 
   def current_uri
     @current_uri
+  end
+
+  def has_queries(queries : Array(String), uri_queries : URI::Params) : Bool
+    contains_all_queries = true
+    i = 0
+    while i < queries.size
+      unless uri_queries.has_key? queries[i]
+        contains_all_queries = false
+        break
+      end
+      i += 1
+    end
+    contains_all_queries
   end
 end
 
@@ -47,39 +60,16 @@ end
 
 server.get "/app/users/authentication" do
   args = server.current_uri.query_params
-  has_username = args.has_key? "username"
-  has_password = args.has_key? "password"
-  if has_username && has_password
-    puts "Request received to authenticate user: #{args["username"]} with password #{args["password"]}"
+  if server.has_queries(["username", "password"], args)
+    {"status" => 200, "message" => "Authentication request received to authenticate user: #{args["username"]} with password #{args["password"]}"}.to_json
+  else
+    {"status" => 400, "message" => "Error, bad request. The request is either missing a query or has invalid parameters."}.to_json
   end
-  {"status" => 200, "message" => "Authentication request received to authenticate user: #{args["username"]} with password #{args["password"]}"}.to_json
 end
 
 # Endpoint for Receiving Users. Currently testing...
 server.get "/app/users" do
-  args = server.current_uri.query_params
-  # TODO: find a better way to represent this expression.
-  has_id = args.has_key? "id"
-  has_name = args.has_key? "name"
-  response = ""
-  if has_id && has_name
-    user = User.new(args["id"].to_u32, args["name"])
-    # TODO: Find a better way to serialise nested JSON objects
-    response = JSON.build do |json|
-      json.object do
-        json.field "status", 200
-        json.field "message" do
-          json.object do
-            json.field "id", user.id
-            json.field "name", user.name
-          end
-        end
-      end
-    end
-  else
-    response = {"status" => 404, "message" => "Error, User not found"}.to_json
-  end
-  response
+  {"status" => 200, "message" => "Request recieved for the users endpoint!"}.to_json
 end
 
 server.run
