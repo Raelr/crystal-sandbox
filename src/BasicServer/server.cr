@@ -13,8 +13,10 @@ class BasicServer
   def run
     server : HTTP::Server = HTTP::Server.new do |context|
       @current_uri = URI.parse "#{@current_uri.scheme}://#{@current_uri.host}:#{@port}#{context.request.path.to_s}?#{context.request.query.to_s}"
+      # Set headers to allow CORS access from origin and set response type to JSON
+      context.response.content_type = "application/json"
+      context.response.headers.add "Access-Control-Allow-Origin", "*"
       if @routes.has_key?(context.request.path.to_s)
-        context.response.content_type = "application/json"
         context.response.print(@routes[context.request.path.to_s].call)
       else
         context.response.print({"status" => 404, "message" => "Page not found"}.to_json)
@@ -43,6 +45,17 @@ server.get "/app" do
   {"status" => 200, "message" => "The App Page!"}.to_json
 end
 
+server.get "/app/users/authentication" do
+  args = server.current_uri.query_params
+  has_username = args.has_key? "username"
+  has_password = args.has_key? "password"
+  if has_username && has_password
+    puts "Request received to authenticate user: #{args["username"]} with password #{args["password"]}"
+  end
+  {"status" => 200, "message" => "Authentication request received to authenticate user: #{args["username"]} with password #{args["password"]}"}.to_json
+end
+
+# Endpoint for Receiving Users. Currently testing...
 server.get "/app/users" do
   args = server.current_uri.query_params
   # TODO: find a better way to represent this expression.
