@@ -22,7 +22,7 @@ class BasicServer
       if @routes.has_key?(context.request.path.to_s)
         context.response.print(@routes[context.request.path.to_s].call)
       else
-        context.response.print(wrap_response(404, nil, "Page not found").to_json)
+        context.response.print(wrap_response(404, "Page not found"))
       end
     end
     server.bind_tcp 8080
@@ -52,25 +52,25 @@ end
 server = BasicServer.new
 
 server.get "/" do
-  wrap_response(200, nil, "Homepage").to_json
+  wrap_response(200, "Homepage")
 end
 
 server.get "/app" do
-  wrap_response(200, nil, "The App Page!").to_json
+  wrap_response(200, "The App Page!")
 end
 
 server.get "/app/users/authentication" do
   args = server.current_uri.query_params
   if server.has_queries(["username", "password"], args)
-    wrap_response(200, nil, "Authentication request received to authenticate user: #{args["username"]} with password #{args["password"]}").to_json
+    wrap_response(200, [{"username", args["username"]}, {"password", args["password"]}], "Request received to authenticate user")
   else
-    wrap_response(400, nil, "Error, bad request. The request is either missing a query or has invalid parameters.Th").to_json
+    wrap_response(400, "Error, bad request. The request is either missing a query or has invalid parameters.")
   end
 end
 
 # Endpoint for Receiving Users. Currently testing...
 server.get "/app/users" do
-  wrap_response(200, nil, "Request recieved for the users endpoint!").to_json
+  wrap_response(200, "Request recieved for the users endpoint!")
 end
 
 server.run
