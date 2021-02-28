@@ -5,6 +5,7 @@ require "uri"
 require "json"
 require "db"
 require "pg"
+require "yaml"
 
 include Utils::ApiUtils
 
@@ -53,6 +54,16 @@ class BasicServer
   end
 end
 
+# Load in the config file info (so we can avoid explicitly naming our DB URL)
+# TODO: Create a separate object for our config info
+db_uri = ""
+config = File.open("configuration.yaml") do |file|
+  yaml = YAML.parse file
+  db_uri = yaml["db"]["pg"]["uri"]
+end
+
+puts db_uri
+
 server = BasicServer.new
 
 server.get "/" do
@@ -67,10 +78,9 @@ server.get "/app/users/authentication" do
   args = server.current_uri.query_params
   if server.has_queries(["username", "password"], args)
     status = {401, "Username or Password are incorrect!"}
-    # TODO: Allow the DB URL to be configured using an external file.
     # TODO: Move DB-related data to its own file.
     # TODO: Work out how secure authentication works...
-    DB.open "postgres://postgres:admin@localhost:5432/aryehzinn" do |db|
+    DB.open db_uri do |db|
       db.query "SELECT username, password FROM users WHERE username='#{args["username"]}' AND password='#{args["password"]}';" do |rs|
         rs.each do
           status = {200, "User Authenticated!"}
