@@ -1,4 +1,4 @@
 # A config file that allows you to specify the Database you wish to use.
 db:
   pg:
-    uri: 
+    uri:
