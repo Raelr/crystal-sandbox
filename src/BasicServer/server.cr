@@ -67,6 +67,9 @@ server.get "/app/users/authentication" do
   args = server.current_uri.query_params
   if server.has_queries(["username", "password"], args)
     status = {401, "Username or Password are incorrect!"}
+    # TODO: Allow the DB URL to be configured using an external file.
+    # TODO: Move DB-related data to its own file.
+    # TODO: Work out how secure authentication works...
     DB.open "postgres://postgres:admin@localhost:5432/aryehzinn" do |db|
       db.query "SELECT username, password FROM users WHERE username='#{args["username"]}' AND password='#{args["password"]}';" do |rs|
         rs.each do
