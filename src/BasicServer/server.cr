@@ -80,7 +80,7 @@ server.get "/app/users/authentication" do
     status = {401, "Username or Password are incorrect!"}
     # TODO: Move DB-related data to its own file.
     # TODO: Work out how secure authentication works...
-    DB.open db_uri do |db|
+    DB.open db_uri.to_s do |db|
       db.query "SELECT username, password FROM users WHERE username='#{args["username"]}' AND password='#{args["password"]}';" do |rs|
         rs.each do
           status = {200, "User Authenticated!"}
