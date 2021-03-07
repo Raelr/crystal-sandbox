@@ -14,7 +14,6 @@ class BasicServer
     @routes = {} of String => Hash(String, (-> String))
     @routes["GET"] = Hash(String, (-> String)).new
     @routes["POST"] = Hash(String, (-> String)).new
-    @routes["OPTIONS"] = Hash(String, (-> String)).new
     @port = 8080
     @current_uri = URI.parse "http://localhost:#{@port}"
     @current_body = JSON::Any
@@ -35,10 +34,14 @@ class BasicServer
         @current_body = JSON.parse context.request.body.as IO
       end
 
-      if @routes[method].has_key?(context.request.path.to_s)
-        context.response.print(@routes[method][context.request.path.to_s].call)
+      if method == "OPTIONS"
+        context.response.print(wrap_response(200, ""))
       else
-        context.response.print(wrap_response(404, "Page not found"))
+        if @routes[method].has_key?(context.request.path.to_s)
+          context.response.print(@routes[method][context.request.path.to_s].call)
+        else
+          context.response.print(wrap_response(404, "Page not found"))
+        end
       end
     end
     server.bind_tcp 8080
@@ -51,10 +54,6 @@ class BasicServer
 
   def post(route : String, &block : (-> String))
     @routes["POST"][route] = block
-  end
-
-  def option(route : String, &block : (-> String))
-    @routes["OPTIONS"][route] = block
   end
 
   def current_uri
@@ -110,10 +109,6 @@ server.post "/app/users/authentication" do
   else
     wrap_response(400, "Error, bad request. The request is either missing a query or has invalid parameters.")
   end
-end
-
-server.option "/app/users/authentication" do
-  wrap_response(200, "blah")
 end
 
 # Endpoint for Receiving Users. Currently testing...
