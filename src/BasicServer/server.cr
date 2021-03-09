@@ -34,6 +34,7 @@ class BasicServer
         @current_body = JSON.parse context.request.body.as IO
       end
 
+      # Make sure that any OPTIONS request is handled
       if method == "OPTIONS"
         context.response.print(wrap_response(200, ""))
       else
@@ -48,6 +49,7 @@ class BasicServer
     server.listen
   end
 
+  # Aliases for defining different REST method routes.
   def get(route : String, &block : (-> String))
     @routes["GET"][route] = block
   end
@@ -60,15 +62,31 @@ class BasicServer
     @current_uri
   end
 
-  def has_queries(queries : Array(String), uri_queries : URI::Params) : Bool
+  def current_body
+    @current_body
+  end
+
+  def has_queries(queries : Array(String), args : URI::Params) : Bool
     contains_all_queries = true
     queries.each do |query|
-      unless uri_queries.has_key? query
+      unless args.has_key? query
         contains_all_queries = false
         break
       end
     end
     contains_all_queries
+  end
+
+  def has_body_param(param : String) : Bool
+    @current_body.as(JSON::Any)[param]?.to_s != ""
+  end
+
+  def get_body_param(param : String) : String | Nil
+    if has_body_param(param)
+      @current_body.as(JSON::Any)[param].to_s
+    else
+      nil
+    end
   end
 end
 
@@ -93,19 +111,18 @@ server.get "/app" do
 end
 
 server.post "/app/users/authentication" do
-  args = server.current_uri.query_params
-  if server.has_queries(["username", "password"], args)
+  if server.has_body_param("username") && server.has_body_param("password")
+    username = server.get_body_param "username"
+    password = server.get_body_param "password"
     status = {401, "Username or Password are incorrect!"}
-    # TODO: Move DB-related data to its own file.
-    # TODO: Work out how secure authentication works...
     DB.open db_uri.to_s do |db|
-      db.query "SELECT username, password FROM users WHERE username='#{args["username"]}' AND password='#{args["password"]}';" do |rs|
+      db.query "SELECT username, password FROM users WHERE username='#{username}' AND password='#{password}';" do |rs|
         rs.each do
           status = {200, "User Authenticated!"}
         end
       end
     end
-    wrap_response(status[0], [{"username", args["username"]}, {"password", args["password"]}], status[1])
+    wrap_response(status[0], [{"username", username}, {"password", password}], status[1])
   else
     wrap_response(400, "Error, bad request. The request is either missing a query or has invalid parameters.")
   end
