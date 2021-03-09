@@ -6,6 +6,9 @@ jobs:
       - image: crystallang/crystal
     steps: 
       - run:
+          name: Init 
+          command: shards init
+      - run:
           name: Install Dependencies
           command: shards install
 
