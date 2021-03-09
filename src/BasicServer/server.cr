@@ -81,9 +81,9 @@ class BasicServer
     @current_body.as(JSON::Any)[param]?.to_s != ""
   end
 
-  def get_body_param(param : String) : String | Nil
+  def get_body_param(param : String) : JSON::Any | Nil
     if has_body_param(param)
-      @current_body.as(JSON::Any)[param].to_s
+      @current_body.as(JSON::Any)[param]
     else
       nil
     end
@@ -112,8 +112,8 @@ end
 
 server.post "/app/users/authentication" do
   if server.has_body_param("username") && server.has_body_param("password")
-    username = server.get_body_param "username"
-    password = server.get_body_param "password"
+    username = server.get_body_param "username".to_s
+    password = server.get_body_param "password".to_s
     status = {401, "Username or Password are incorrect!"}
     DB.open db_uri.to_s do |db|
       db.query "SELECT username, password FROM users WHERE username='#{username}' AND password='#{password}';" do |rs|
