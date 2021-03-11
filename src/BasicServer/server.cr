@@ -139,9 +139,12 @@ server.post "/app/users/authentication" do
     password = server.get_body_param "password".to_s
     status = {401, "Username or Password are incorrect!"}
     DB.open db_uri.to_s do |db|
-      db.query "SELECT username, password FROM users WHERE username='#{username}' AND password='#{password}';" do |rs|
+      db.query "SELECT password FROM users WHERE username='#{username}';" do |rs|
         rs.each do
-          status = {200, "User Authenticated!"}
+          pwd = Crypto::Bcrypt::Password.new rs.read(String)
+          if pwd.verify(password.to_s)
+            status = {200, "User Authenticated!"}
+          end
         end
       end
     end
