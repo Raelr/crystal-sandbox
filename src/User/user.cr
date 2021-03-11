@@ -1,5 +1,6 @@
 require "json"
 
+# TODO: Make this class relevant again.
 class User
   include JSON::Serializable
 

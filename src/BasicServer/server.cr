@@ -124,10 +124,8 @@ server.post "/app/users/register" do
           user_exists = true
         end
       end
-    end
-    unless user_exists
-      DB.open db_uri.to_s do |db|
-        db.exec "insert into users values ($1, $2)", username, Crypto::Bcrypt::Password.create(password.to_s, cost: 14)
+      unless user_exists
+        db.exec("insert into users values ($1, $2)", username, Crypto::Bcrypt::Password.create(password.to_s, cost: 14))
         status = {200, "User successfully added!"}
       end
     end
