@@ -1,6 +1,7 @@
 require "http/server"
 require "../User/user"
 require "../utils/api_utils"
+require "crypto/bcrypt/password"
 require "uri"
 require "json"
 require "db"
@@ -108,6 +109,30 @@ end
 
 server.get "/app" do
   wrap_response(200, "The App Page!")
+end
+
+server.post "/app/users/register" do
+  status = {400, "Invalid Parameters. Please ensure all data is passed in the object's body"}
+  if server.has_body_param("username") && server.has_body_param("password")
+    username = server.get_body_param "username".to_s
+    password = server.get_body_param "password".to_s
+    user_exists = false
+    DB.open db_uri.to_s do |db|
+      db.query "SELECT username, password FROM users WHERE username='#{username}'" do |rs|
+        rs.each do
+          status = {400, "User already exists!"}
+          user_exists = true
+        end
+      end
+    end
+    unless user_exists
+      DB.open db_uri.to_s do |db|
+        db.exec "insert into users values ($1, $2)", username, Crypto::Bcrypt::Password.create(password.to_s, cost: 14)
+        status = {200, "User successfully added!"}
+      end
+    end
+  end
+  wrap_response(status[0], status[1])
 end
 
 server.post "/app/users/authentication" do
