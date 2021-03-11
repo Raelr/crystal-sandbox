@@ -1,0 +1,14 @@
+version: 2.1
+
+jobs:
+  build: 
+    docker: 
+      - image: crystallang/crystal
+    steps: 
+      - run:
+          name: Init 
+          command: shards init
+      - run:
+          name: Install Dependencies
+          command: shards install
+
