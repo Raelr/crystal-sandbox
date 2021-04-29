@@ -1,0 +1,8 @@
+# Database URL configuration
+db: 
+  pg: 
+    postgres_username: <YOUR_USERNAME>
+    postgres_password: <YOUR_PASSWORD>
+    host: localhost
+    port: 5432
+    database_name: <DB_NAME>
