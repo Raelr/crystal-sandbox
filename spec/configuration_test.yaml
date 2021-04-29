@@ -1,7 +1,6 @@
 # Database URL configuration
 db: 
   pg: 
-    # URI parameters: postgres://<USERNAME>:<PASSWORD>@<HOST_IP>:<PORT>/<DATABASE_NAME>
     postgres_username: test_user
     postgres_password: test_password
     host: localhost
