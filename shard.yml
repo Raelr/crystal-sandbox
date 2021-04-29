@@ -7,7 +7,7 @@ authors:
 
 targets:
   test-backend:
-    main: src/BasicServer/server.cr
+    main: src/login_backend.cr
 
 crystal: 0.36.1
 
@@ -16,3 +16,5 @@ license: MIT
 dependencies:
   pg:
     github: will/crystal-pg
+  granite:
+    github: amberframework/granite
