@@ -1,10 +1,19 @@
 services: 
+  login:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: crystal run src/login_backend.cr
+    ports: 
+      - 8080:8080
+    depends_on:
+      - psql
   psql: 
     container_name: psql
     image: postgres
     environment:
-      POSTGRES_PASSWORD: <YOUR_PASSWORD>
-      POSTGRES_USER: <YOUR_USERNAME>
-      POSTGRES_DB: users
+      POSTGRES_USER: <PG_USERNAME>
+      POSTGRES_PASSWORD: <PG_PASSWORD>
     ports:
-      - "5432:5432"
+      - 5432:5432

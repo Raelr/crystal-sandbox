@@ -1,5 +1,5 @@
 require "yaml"
-
+# TODO: Create fields for users to input general config parameters (such as host and port)
 module Utils::ApiUtils
     class Configuration 
         def initialize 

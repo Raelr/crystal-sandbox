@@ -9,7 +9,11 @@ config = Utils::ApiUtils::Configuration.new("configuration.yaml")
 
 puts "POSTGRES SETUP | Configured database URL: \"#{config.database_url}\""
 
-server = BasicServer.new
+server = BasicServer.new(8080, "0.0.0.0")
+
+server.get "/" do 
+  wrap_response(200, "Hello!")
+end
 
 server.post "/app/users/register" do
   status = {400, "Invalid Parameters. Please ensure all data is passed in the object's body"}
