@@ -1,11 +1,11 @@
 server_config:
-  host: localhost
+  host: localhost # Set to '0.0.0.0' if running a containerised build
   port: 8080
 # Database URL configuration
 db: 
   pg: 
     postgres_username: <YOUR_USERNAME>
     postgres_password: <YOUR_PASSWORD>
-    host: localhost
-    port: 5432
     database_name: <DB_NAME>
+    host: localhost # Set to 'psql' if running a containerised build
+    port: 5432
