@@ -1,3 +1,6 @@
+server_config:
+  host: localhost
+  port: 8080
 # Database URL configuration
 db: 
   pg: 

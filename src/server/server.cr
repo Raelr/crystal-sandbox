@@ -6,11 +6,12 @@ require "json"
 include Utils::ApiUtils
 
 class BasicServer
-  def initialize(port : Int32, host : String = "localhost")
+  def initialize(port : Int32, host : String = "127.0.0.1")
     @routes = {} of String => Hash(String, (-> String))
     @routes["GET"] = Hash(String, (-> String)).new
     @routes["POST"] = Hash(String, (-> String)).new
     @port = port
+    puts host
     @current_uri = URI.parse "http://#{host}:#{@port}"
     @current_body = JSON::Any
   end
@@ -41,7 +42,7 @@ class BasicServer
         end
       end
     end
-    server.bind_tcp @current_uri.host, @port
+    server.bind_tcp @current_uri.host.to_s, @port
     server.listen
   end
 

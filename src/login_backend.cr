@@ -9,13 +9,14 @@ config = Utils::ApiUtils::Configuration.new("configuration.yaml")
 
 puts "POSTGRES SETUP | Configured database URL: \"#{config.database_url}\""
 
-server = BasicServer.new(8080, "0.0.0.0")
+server = BasicServer.new(config.server_config.port, config.server_config.host)
 
 server.get "/" do 
   wrap_response(200, "Hello!")
 end
 
 server.post "/app/users/register" do
+  puts config.database_url
   status = {400, "Invalid Parameters. Please ensure all data is passed in the object's body"}
   if server.has_body_param("username") && server.has_body_param("password")
     username = server.get_body_param "username".to_s

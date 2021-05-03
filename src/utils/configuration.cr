@@ -3,11 +3,8 @@ require "yaml"
 module Utils::ApiUtils
     class Configuration 
         def initialize 
-            @pg_username = ""
-            @pg_password = ""
-            @pg_host = ""
-            @pg_port = ""
-            @pg_database = ""
+            @server_config = ServerConfig.new
+            @postgres_config = PostgresConfig.new
         end
 
         def initialize(path : String)
@@ -18,12 +15,20 @@ module Utils::ApiUtils
         def load_config_from_file(path : String)
             File.open(path) do |file|
                 yaml = YAML.parse file
+                server_config = yaml["server_config"]
+                @server_config = ServerConfig.new(
+                    get_param_as_string(server_config, "host"),
+                    server_config["port"].as_i
+                )
                 postgres_config = yaml["db"]["pg"]
-                @pg_username = get_param_as_string(postgres_config, "postgres_username")
-                @pg_password = get_param_as_string(postgres_config, "postgres_password")
-                @pg_host = get_param_as_string(postgres_config, "host")
-                @pg_port = get_param_as_string(postgres_config, "port")
-                @pg_database = get_param_as_string(postgres_config, "database_name")
+                puts "HOST: #{get_param_as_string(postgres_config, "host")}"
+                @postgres_config = PostgresConfig.new(
+                    get_param_as_string(postgres_config, "postgres_username"),
+                    get_param_as_string(postgres_config, "postgres_password"),
+                    get_param_as_string(postgres_config, "host"),
+                    postgres_config["port"].as_i,
+                    get_param_as_string(postgres_config, "database_name")
+                )
             end 
         end
 
@@ -32,7 +37,56 @@ module Utils::ApiUtils
         end
 
         def database_url : String
-            "postgres://#{@pg_username}:#{@pg_password}@#{@pg_host}:#{@pg_port}/#{@pg_database}"
+            "postgres://#{@postgres_config.username}:#{@postgres_config.password}@#{@postgres_config.host}:#{@postgres_config.port}/#{@postgres_config.database}"
+        end
+
+        def server_config 
+            @server_config
+        end
+
+        def postgres_config
+            @postgres_config
+        end
+    end
+
+    private struct PostgresConfig
+        def initialize(
+            @username : String = "", @password : String = "", @host : String = "localhost", @port : Int32 = 5432, 
+            @database_name : String = "")
+        end 
+
+        def username
+            @username
+        end
+
+        def password 
+            @password
+        end
+
+        def host 
+            @host
+        end
+
+        def port 
+            @port
+        end
+
+        def database
+            @database_name
+        end
+    end
+
+    private struct ServerConfig
+        def initialize(host : String = "localhost", @port : Int32 = 5432)
+            @host = host == "localhost" ? "127.0.0.1" : host
+        end
+
+        def host 
+            @host
+        end
+
+        def port 
+            @port
         end
     end
 end
