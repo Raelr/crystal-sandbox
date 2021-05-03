@@ -4,10 +4,23 @@ require "pg"
 require "yaml"
 require "crypto/bcrypt/password"
 require "./utils/configuration"
+require "granite/adapter/pg"
 
 config = Utils::ApiUtils::Configuration.new("configuration.yaml")
 
 puts "POSTGRES SETUP | Configured database URL: \"#{config.database_url}\""
+
+Granite::Connections << Granite::Adapter::Pg.new(name: "pg", url: config.database_url)
+
+class User < Granite::Base
+
+  connection pg
+  column username : String, primary: true, auto: false
+  column password : String
+
+end
+
+User.create(username: "Aryeh", password: "blah")
 
 server = BasicServer.new(config.server_config.port, config.server_config.host)
 

@@ -6,6 +6,6 @@ db:
   pg: 
     postgres_username: test_user
     postgres_password: test_password
+    database_name: test_db
     host: localhost
     port: 5432
-    database_name: test_db
