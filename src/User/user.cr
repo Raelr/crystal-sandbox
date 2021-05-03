@@ -1,9 +1,12 @@
 require "granite/adapter/pg"
+require "../utils/configuration"
 
-class User < Granite::Base
-
-  connection pg
-  column username : String, primary: true, auto: false
-  column password : String
-
+module Models
+  
+  class User < Granite::Base
+    connection pg
+    table users
+    column username : String, primary: true, auto: false
+    column password : String
+  end
 end

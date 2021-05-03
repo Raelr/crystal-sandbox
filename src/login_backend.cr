@@ -1,32 +1,42 @@
+require "./utils/configuration"
+
+Configuration.new("configuration.yaml")
+
+Granite::Connections << Granite::Adapter::Pg.new(name: "pg", url: Configuration.instance.database_url)
+
 require "./server/server"
 require "db"
 require "pg"
 require "yaml"
 require "crypto/bcrypt/password"
-require "./utils/configuration"
-require "granite/adapter/pg"
+require "./user/user"
 
-config = Utils::ApiUtils::Configuration.new("configuration.yaml")
+config = Configuration.instance
 
 puts "POSTGRES SETUP | Configured database URL: \"#{config.database_url}\""
 
-Granite::Connections << Granite::Adapter::Pg.new(name: "pg", url: config.database_url)
-
-class User < Granite::Base
-
-  connection pg
-  column username : String, primary: true, auto: false
-  column password : String
-
+begin 
+  Models::User.migrator.create
+rescue ex
+  puts ex.message
 end
-
-User.create(username: "Aryeh", password: "blah")
 
 server = BasicServer.new(config.server_config.port, config.server_config.host)
 
 server.get "/" do 
   wrap_response(200, "Hello!")
 end
+
+if Models::User.exists? "Aryeh"
+  Models::User.find!("Aryeh").destroy!
+end
+
+u = Models::User.new
+u.username = "Aryeh"
+u.password = "blah"
+u.save
+
+# TODO: add model creation logic to api endpoints (below this)
 
 server.post "/app/users/register" do
   puts config.database_url
